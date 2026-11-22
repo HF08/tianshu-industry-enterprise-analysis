@@ -1,0 +1,8 @@
+window.posterFrame=(snap,mode)=>{
+ const s=current;
+ Object.assign(s,{phase:snap.phase,snapshot:snap.snapshot,asOf:snap.asOf,plan:snap.plan,research:snap.question,agents:snap.agents,visuals:snap.visuals,agentOutput:snap.agentOutput,verifiedLedger:snap.verifiedLedger,finalText:snap.finalText,traceOpen:true,boardMode:mode,trace:{events:snap.events,entries:new Map(snap.entries),transcript:snap.transcript}});
+ s.item.dataset.name=s.plan.target+'研究';s.item.querySelector('.chat-name').textContent=s.item.dataset.name;renderLeadTitle(s);
+ s.feed.replaceChildren();bubble(s,'你',s.research,'user');
+ for(const row of snap.transcript.filter(x=>x.key.endsWith('-brief')||x.key==='TS-brief-planning').slice(0,4))bubble(s,row.who,row.who+' · '+row.text.trim(),'progress');
+ input.placeholder='继续向天枢追问或补充内容';mountTrace(s);showPanel(s);workspace.scrollTop=0;
+};

@@ -1,0 +1,31 @@
+from pathlib import Path
+from shutil import copy2
+d=Path('work/new-report-base/天枢团队审查包/天枢工作台')
+h=Path('outputs/Tianshu-Report-Interactive')
+for f in ['research-report.js','research-report.css']:copy2(h/'app'/f,d/'app'/f)
+def text(p):return p.read_text('utf-8-sig')
+def wr(p,s):p.write_text(s,'utf-8')
+def cut(s,a,b,r):i=s.index(a);j=s.index(b,i);return s[:i]+r+s[j:]
+p=d/'app/index.html';s=text(p);other=text(h/'app/index.html')
+s=cut(s,'<div class="report-layer"','<div class="toast"',other[other.index('<dialog id="research-report"'):other.index('<div class="toast"')]);i=s.rindex('<script>',0,s.index('// 报告预览：示例数据'));j=s.index('</script>',i)+9;s=s[:i]+s[j:];s=s.replace('<button type="button" class="report-btn" id="board-report">研究报告</button>','').replace('<button hidden style="display:none" class="report-btn" id="report-toggle"','<button class="report-btn" id="report-toggle"').replace('aria-controls="report-panel"','aria-controls="research-report"').replace('<script src="team.js">','<link rel="stylesheet" href="research-report.css"><script src="research-report.js"></script>\n<script src="team.js">');wr(p,s)
+p=d/'server.mjs';s=text(p);other=text(h/'server.mjs');s=cut(s,'const roles =','async function loadInstructions',other[other.index('const roles ='):other.index('const modes =')]);s=s.replace('const actions = {','const actions = {\n'+next(l for l in other.splitlines() if l.startswith('  report:')));s=s.replace("'board-example.json']","'board-example.json','research-report.js','research-report.css']");s=s.replace("effort==='max'?'xhigh':effort","effort==='max'&&url.hostname!=='api.deepseek.com'?'xhigh':effort");wr(p,s)
+p=d/'prompts.md';s=text(p);other=text(h/'prompts.md')
+for old,new in [('上下游关联企业及竞争','企业同行竞争分析'),('上下游分析','行业同业企业竞争分析')]:
+ a='## 研究系统提示词 · '+new;i=other.index(a);end=other.index('\n## ',i);s=cut(s,'## 研究系统提示词 · '+old,'\n## ',other[i:end])
+s=s.replace('天枢负责写报告','报告代理负责证据化报告，天枢汇总并接受追问').replace('你是上下游产业链图谱的数据生成引擎','同行竞争比较为首要产物，同时将有证据的上下游关系输出给产业链视图');s+='\n'+other[other.index('## 可视化报告代理'):];wr(p,s)
+p=d/'app/role-tools.js';s=text(p);other=text(h/'app/role-tools.js');i=other.index("      copyMetrics(m=>['CR5'");j=other.index("      pairs('关键投入采购额'",i);s=s.replace("      copyMetrics(m=>/价差|原料价格|产品价格|产能利用率|进口量|出口量/.test(m.name));",other[i:j]);s=s.replace('校验产业链节点、依赖与价格传导','排序同行代表企业并核对样本集中度');wr(p,s)
+p=d/'kernel.mjs';s=text(p).replace('value:rows.map(r=>[r.SECURITY_CODE,r.TOTAL_OPERATE_INCOME])','value:rows.map(r=>[r.SECURITY_CODE,r.TOTAL_OPERATE_INCOME,r.SECURITY_NAME_ABBR])');wr(p,s)
+p=d/'app/team.js';s=text(p);other=text(h/'app/team.js')
+s=cut(s,'  const names =','  const sessions',other[other.index('  const names ='):other.index('  const sessions')])
+s=s.replace('  const board=','  const reports=window.researchReport.bind(()=>current,(s,r)=>{if(s.view)leaveAgentView(s);void run(s,{type:r.type,target:r.target,scope:r.scope},r.question);});\n  const board=')
+s=s.replace("  $('#board-report').onclick="+s.split("  $('#board-report').onclick=")[1].split('\n')[0],"  document.addEventListener('live-report-request',()=>{if(current?.reports?.length)$('#report-toggle').click();});")
+s=s.replace('    showPanel(current);','    showPanel(current);reports.sync();').replace("$('#report-toggle-label').textContent='示例报告'","$('#report-toggle-label').textContent='展开报告'")
+s=s.replace('    const checks={','    const checks={\n      report:r=>window.researchReport.valid(r,data.catalogue),')
+i=other.index('  async function compileReport');j=other.index('  async function run',i)
+fn=other[i:j].replace("    const role='RPT'","    traceNode(s,'RPT','RPT','报告编制','核对指标、来源与四份团队回报','step');\n    const role='RPT'").replace('    if(current===s){reports.ready();scheduleView(s);}',"    out.report={summary:out.result,missing:report.written.gaps,artifacts:[],risk_findings:report.written.risks};out.analysis=out.result;traceNode(s,'RPT','RPT','报告就绪',out.result,'result');recordText(s,'RPT-result','可视化报告',out.result);\n    if(current===s){reports.ready();scheduleView(s);}")
+s=s.replace('  async function run(s){',fn+'  async function run(s,fixedPlan,fixedQuestion){').replace("s.research=s.materials.map","s.research=fixedQuestion||s.materials.map").replace("const plan=await structured(s,'TS','plan'","const plan=fixedPlan||await structured(s,'TS','plan'").replace("      await work(s,ids[3],signal);","      await work(s,ids[3],signal);\n      await compileReport(s,signal);").replace("task:'等待派发'}));","task:'等待派发'}));")
+i=s.index('      ensureViewRole(s);',s.index('      s.agents=ids.map'));s=s[:i]+"      s.agents.push({id:'RPT',name:names.RPT,status:'等待中',task:'等待四份回报'});\n"+s[i:]
+s=cut(s,'    const chips=[','    if(!s.history.length)',other[other.index('    const content=text+(s.citations'):other.index('    if(!s.history.length)',other.index('    const content=text+(s.citations'))])
+s=s.replace('finalText:s.finalText||','reportEdition:s.reports?.at(-1)?.written||null,finalText:s.finalText||');wr(p,s)
+p=d/'app/research-board.js';s=text(p).replace("CHAIN:'上下游分析'","CHAIN:'同业企业竞争分析'").replace("COMP:'上下游与竞争'","COMP:'同行竞争分析',RPT:'可视化报告'").replace("const glyphs=['Activity','GitFork','UsersRound','ShieldCheck']","const glyphs=['Activity','GitFork','UsersRound','ShieldCheck','Activity']").replace("'#8fb7ff'];","'#8fb7ff','#9cd8b1'];")
+s=s.replace("function change(mode,id){wrap.scrollTop=0;const s=session();","function change(mode,id){if(mode==='report'&&!sample&&get()?.reports?.length&&document.getElementById('research-report')){document.dispatchEvent(new Event('live-report-request'));return;}wrap.scrollTop=0;const s=session();");wr(p,s)

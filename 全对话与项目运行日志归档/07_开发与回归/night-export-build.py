@@ -1,0 +1,4 @@
+from pathlib import Path
+p=Path('work/export-actual-reports.mjs')
+s=p.read_text('utf-8-sig').replace('work/new-report-base/天枢团队审查包','work/night-industry').replace("['FIN','IND']","['BAT','PV']").replace('work/verified-new-','work/verified-night-').replace("const graph=await fs.readFile(app+'chain-map.js','utf8');","const graph=(await fs.readFile(app+'chain-map.js','utf8'))+'\\n'+await fs.readFile(app+'supply-network.js','utf8');").replace('competition:s.visuals','chainStudy:s.agentOutput.SUPPLY?.report?.chainStudy,competition:s.visuals').replace("const css=await fs.readFile(app+'research-report.css','utf8');","const css=(await fs.readFile(app+'team.css','utf8'))+'\\n'+await fs.readFile(app+'research-report.css','utf8');").replace('-新构建实跑报告.html','-黑夜版研究报告.html')
+Path('work/export-night.mjs').write_text(s,'utf-8')
